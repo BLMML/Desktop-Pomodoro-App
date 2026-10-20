@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="morning">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e5eadd">
+  <meta name="description" content="在山色与微风中，专注当下。山间小憩，一个安静、舒缓、有完成提示音的番茄钟。">
+  <title>山间小憩 · 番茄钟</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="landscape.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="stats.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-sun" viewBox="0 0 24 24"><path d="M5 16a7 7 0 0 1 14 0M2 19h20M12 2v3M3.5 7.5l2 2M20.5 7.5l-2 2M1 14h2M21 14h2"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 10 7-10 7Z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 6v12M16 6v12" stroke-width="3"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 4 6 8H3v8h3l5 4ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 4 6 8H3v8h3l5 4ZM16 9l6 6m0-6-6 6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h7m4 0h5M4 17h3m4 0h9"/><circle cx="13" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4C7 2 2 10 7 16s14 1 12-12ZM5 21l10-12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  </defs></svg>
+
+  <div class="landscape" aria-hidden="true">
+    <svg class="landscape-art" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sky" x2="0" y2="1"><stop class="sky-top"/><stop offset="1" class="sky-bottom"/></linearGradient>
+        <linearGradient id="lake" x2="0" y2="1"><stop class="water-top"/><stop offset="1" class="water-bottom"/></linearGradient>
+        <radialGradient id="sun-halo"><stop offset="0" stop-color="#fff7d8" stop-opacity=".6"/><stop offset="1" stop-color="#fff6df" stop-opacity="0"/></radialGradient>
+        <linearGradient id="mist" x2="0" y2="1"><stop stop-color="#edf1e5" stop-opacity="0"/><stop offset=".58" stop-color="#edf1e5" stop-opacity=".45"/><stop offset="1" stop-color="#edf1e5" stop-opacity="0"/></linearGradient>
+        <linearGradient id="reflection" x2="0" y2="1"><stop stop-color="#fff7d2" stop-opacity=".45"/><stop offset="1" stop-color="#fff7d2" stop-opacity="0"/></linearGradient>
+      </defs>
+      <path fill="url(#sky)" d="M0 0h1600v1000H0z"/>
+      <circle cx="1210" cy="285" r="265" fill="url(#sun-halo)"/>
+      <circle class="sun-disc" cx="1210" cy="285" r="69"/>
+      <g class="clouds" fill="none" stroke="currentColor" stroke-linecap="round" opacity=".24"><path d="M70 200h190m-126 13h212M995 140h167m-105 13h183M1320 420h184"/></g>
+      <path class="mountain-far" d="M0 490Q85 450 175 496T330 458Q377 415 432 457L570 556Q685 454 761 510T920 488L1031 402Q1085 350 1153 407L1262 480Q1330 450 1399 490L1490 431Q1540 396 1600 440V810H0Z"/>
+      <path class="mountain-mid" d="M0 461Q90 463 172 535T342 542Q389 508 443 535L633 646Q712 669 792 612Q885 567 961 609Q1030 646 1098 566L1190 499Q1250 480 1330 536T1470 509L1600 540V880H0Z"/>
+      <path class="mountain-near" d="M0 570Q96 572 207 646T387 658Q464 652 547 704L734 767H0ZM1600 513Q1515 517 1437 598T1249 670Q1188 654 1109 714L914 773h686Z"/>
+      <path fill="url(#lake)" d="M0 765Q341 717 798 762T1600 748v252H0Z"/>
+      <ellipse cx="1200" cy="847" rx="70" ry="120" fill="url(#reflection)"/>
+      <path class="shore-far" d="M0 711Q83 675 213 728T505 771L751 797Q381 779 0 824ZM1600 672q-111 10-251 78t-410 48q411-15 661 65Z"/>
+      <g class="water-lines" fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M607 827h78m45 0h160m160 19h145m-72 7h98M222 862h135m110 36h221m427-16h198M701 950h125m164-32h72M68 953h199"/>
+        <path opacity=".5" d="M365 814h82m513 16h20M906 866h41M722 889h142m493 26h68M407 950h120"/>
+      </g>
+      <path class="mist-layer" d="M0 660h1600v175H0Z" fill="url(#mist)"/>
+      <g class="birds" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M270 305q9-5 16 2 6-9 16-8M316 325q6-3 11 2 4-7 11-5M239 324q5-3 9 1 4-6 9-4"/></g>
+      <path class="shore-front" d="M0 922q75-34 158 15t269 63H0Zm1600-28q-121-8-223 74l-81 32h304Z"/>
+      <g class="reeds" stroke="currentColor" fill="none" stroke-linecap="round"><path d="M63 1000q12-60-13-100m18 100q15-40 36-61m-55 61q1-23-16-50M1509 1000q-9-71 21-125m-14 125q0-58 37-80m-51 80q3-32-23-55"/><path stroke-width="3" d="m50 900-8-17m1488-8 9-22m14 67 15-11"/></g>
+    </svg>
+    <div class="grain"></div>
+    <div class="mote mote-one"></div><div class="mote mote-two"></div><div class="mote mote-three"></div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#home" data-page="home" aria-label="山间小憩首页"><span class="brand-mark"><svg><use href="#i-sun"/></svg></span><span>山间小憩<small>A LITTLE MOMENT</small></span></a>
+    <nav class="app-nav" aria-label="主要页面"><button data-page="home" class="nav-button active" aria-current="page">专注时光</button><button data-page="plans" class="nav-button">今日计划</button><button data-page="data" class="nav-button">数据与设置</button></nav>
+    <div class="header-tools">
+      <span class="quiet-label"><i></i> 留一点时间给自己</span>
+      <button class="icon-button" id="sound-toggle" aria-label="关闭完成提示音" aria-pressed="true" title="关闭完成提示音"><svg><use href="#i-sound"/></svg></button>
+      <button class="icon-button" id="settings-open" aria-label="计时设置" title="计时设置"><svg><use href="#i-settings"/></svg></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="app-page home-page" id="page-home" aria-label="专注时光">
+    <div class="intro"><p class="eyebrow">SLOW DOWN. FOCUS. BREATHE.</p><h1>把时间，还给当下。</h1><p class="intro-copy" id="intro-copy">让纷扰暂时走远，只做眼前这一件事。</p></div>
+    <section class="timer-card" aria-label="番茄钟">
+      <div class="mode-tabs" role="tablist" aria-label="计时模式">
+        <button class="mode-tab active" role="tab" aria-selected="true" aria-controls="timer-panel" id="tab-focus" data-mode="focus">专注时光</button>
+        <button class="mode-tab" role="tab" aria-selected="false" aria-controls="timer-panel" id="tab-short" data-mode="short" tabindex="-1">短暂休息</button>
+        <button class="mode-tab" role="tab" aria-selected="false" aria-controls="timer-panel" id="tab-long" data-mode="long" tabindex="-1">悠长休息</button>
+      </div>
+      <div id="timer-panel" role="tabpanel" aria-labelledby="tab-focus">
+        <label class="plan-association" for="current-plan"><svg><use href="#i-leaf"/></svg><select id="current-plan" aria-label="关联本次专注的计划"><option value="">自由专注 · 暂不关联计划</option></select></label>
+        <div class="clock-face">
+          <svg class="clock-ring" viewBox="0 0 320 320" aria-hidden="true"><circle class="ring-track" cx="160" cy="160" r="146"/><circle class="ring-progress" id="ring-progress" cx="160" cy="160" r="146" pathLength="100"/><circle class="ring-dot" id="ring-dot" cx="160" cy="14" r="4"/></svg>
+          <div class="clock-content"><span class="clock-label" id="clock-label"><span class="status-dot"></span> 心无旁骛的 25 分钟</span><div id="timer" role="timer" aria-live="off" aria-label="剩余 25 分钟">25<span>:</span>00</div><span class="clock-caption" id="clock-caption">此刻，只需专注</span></div>
+        </div>
+        <div class="timer-actions"><span class="action-spacer"></span><button class="start-button" id="start-button"><svg><use href="#i-play"/></svg><span>开始专注</span></button><button class="reset-button icon-button" id="reset-button" aria-label="重置当前计时" title="重置当前计时"><svg><use href="#i-reset"/></svg></button></div>
+        <p class="keyboard-hint" id="keyboard-hint">按 <kbd>空格</kbd> 开始或暂停</p>
+      </div>
+      <div class="card-footer"><svg><use href="#i-leaf"/></svg><span id="card-footer-copy">一小步专注，也是在好好生长。</span></div>
+    </section>
+    <div class="scene-picker" role="group" aria-label="选择风景"><span class="scene-caption">换一处风景</span><button class="scene-button active" data-theme="morning" aria-pressed="true"><span class="scene-swatch morning"></span>晨间山野</button><button class="scene-button" data-theme="forest" aria-pressed="false"><span class="scene-swatch forest"></span>静谧森林</button><button class="scene-button" data-theme="sunset" aria-pressed="false"><span class="scene-swatch sunset"></span>日落时分</button></div>
+    </section>
+
+    <section class="app-page content-page" id="page-plans" aria-label="今日计划" hidden>
+      <div class="page-heading"><div><p class="eyebrow">ONE THING AT A TIME</p><h1>从一件小事开始。</h1><p class="page-copy">把想做的事写下来，再给它一段安静的时间。</p></div><label class="date-control">计划日期<input type="date" id="plan-date" aria-label="选择计划日期"></label></div>
+      <div class="glass-panel plans-panel"><div class="panel-heading"><h2 id="plans-heading">今日计划</h2><span id="plan-progress" class="muted">0 / 0 已完成</span></div>
+        <form id="add-plan-form" class="add-plan-form"><input id="new-plan-title" maxlength="200" placeholder="今天，想完成什么？" aria-label="新计划名称" required autocomplete="off"><button type="submit" class="primary-button">＋ 添加计划</button></form>
+        <div class="plan-list" id="plan-list"></div>
+        <div class="empty-state" id="plans-empty"><svg><use href="#i-leaf"/></svg><h3>给今天留一个小目标</h3><p>添加第一条计划，或回到主页自由专注。</p></div>
+        <div class="plans-summary"><span id="plans-summary">还没有计划，慢慢来。</span><span>完成状态由你自己决定</span></div>
+      </div>
+      <p class="gentle-note">计划可以调整。每一段投入的时间，都会被认真记下。</p>
+    </section>
+
+    <section class="app-page content-page" id="page-data" aria-label="数据与设置" hidden>
+      <div class="page-heading"><div><p class="eyebrow">SMALL MOMENTS, LASTING GROWTH</p><h1>专注，慢慢有了形状。</h1><p class="page-copy">每一格，都是你认真度过的一天。</p></div><span class="local-badge"><i></i> 数据仅保存在这台电脑</span></div>
+      <div class="metrics" aria-label="专注时长总览"><div><span>今日专注</span><strong id="metric-today">0 分钟</strong><small id="metric-today-sessions">0 段专注</small></div><div><span>本周专注</span><strong id="metric-week">0 分钟</strong><small>从周一开始累计</small></div><div><span>累计专注</span><strong id="metric-total">0 分钟</strong><small id="metric-days">0 个专注日</small></div><div><span>最长连续</span><strong id="metric-longest">0 天</strong><small>一点一滴，积累成习惯</small></div><div><span>当前连续</span><strong id="metric-streak">0 天</strong><small>从今天或昨天向前计算</small></div></div>
+      <section class="glass-panel heatmap-panel" aria-label="年度专注日历"><div class="panel-heading"><div><h2>专注足迹</h2><p class="panel-copy" id="year-summary">这一年，给自己留一点时间。</p></div><select id="stats-year" aria-label="选择统计年份"></select></div>
+        <div class="heatmap-scroll"><div class="heatmap-months" id="heatmap-months" aria-hidden="true"></div><div class="heatmap-body"><div class="week-labels" aria-hidden="true"><span>一</span><span>三</span><span>五</span></div><div class="heatmap" id="heatmap" aria-label="点击日期查看当天记录"></div></div></div>
+        <div class="heatmap-footer"><span>按实际专注时长累计，暂停和休息不计入</span><div class="legend" aria-label="颜色由浅到深：无专注、不到30分钟、30至59分钟、60至119分钟、至少120分钟"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>多</span></div></div>
+      </section>
+      <div class="calendar-detail-grid"><section class="glass-panel month-panel" aria-label="月历"><div class="panel-heading"><h2 id="month-title">月历</h2><div class="month-tools"><button id="month-prev" class="small-button" aria-label="上个月">‹</button><button id="month-today" class="small-button">今天</button><button id="month-next" class="small-button" aria-label="下个月">›</button></div></div><div class="month-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="month-calendar" class="month-calendar"></div></section>
+        <section class="glass-panel day-panel" aria-label="每日专注详情"><div class="panel-heading"><h2 id="detail-title">今天的专注</h2><span id="detail-total" class="muted">0 分钟</span></div><div id="day-records" class="day-records"></div></section></div>
+      <section class="glass-panel settings-panel" aria-label="应用设置"><div class="panel-heading"><div><h2>按自己的节奏</h2><p class="panel-copy" id="settings-overview">专注 25 分钟 · 短休息 5 分钟 · 长休息 15 分钟</p></div><button id="data-settings-open" class="outline-button">调整设置</button></div><div class="settings-row"><div><strong>Windows 完成通知</strong><p id="notification-status">结束时发送系统通知，点击后回到应用。</p></div><button id="test-notification" class="outline-button">发送测试通知</button></div><div class="settings-row"><div><strong>本地备份</strong><p>导出一份副本，需要时恢复；恢复前会备份当前数据。</p></div><div class="backup-buttons"><button id="export-backup" class="outline-button">导出备份</button><button id="import-backup" class="outline-button">导入恢复</button></div></div><div class="data-location"><span id="data-location">本地数据</span><button id="open-data-folder" class="text-button">打开数据文件夹 ↗</button></div><p class="behavior-note">关闭窗口：收起到托盘，继续计时。托盘退出、睡眠或休眠：自动暂停，保存进度。</p><p class="app-version" id="app-version">山间小憩 1.0.0 · 离线桌面版</p></section>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="daily-stats"><span class="tiny-tomato" aria-hidden="true">✳</span><span>今日专注 <strong id="today-duration">0 分钟</strong><span class="stats-divider">·</span><span id="today-count">0 段</span></span></div><p id="footer-message">不必着急，按自己的节奏来。</p><span class="sound-status"><span class="sound-bars"><i></i><i></i><i></i></span><span id="sound-status-text">结束时，轻声提醒你</span></span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sr-only" id="announcer" role="status" aria-live="polite"></div>
+
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <form id="settings-form"><div class="dialog-heading"><div><p class="eyebrow">YOUR OWN RHYTHM</p><h2 id="settings-title">找到你的节奏</h2></div><button class="icon-button" type="button" data-close="settings-dialog" aria-label="关闭设置"><svg><use href="#i-close"/></svg></button></div>
+    <p class="dialog-copy">给专注与休息，留刚刚好的时间。</p>
+    <div class="duration-fields"><label>专注时光<input id="duration-focus" name="focus" type="number" min="1" max="180" step="1" required><span>分钟</span></label><label>短暂休息<input id="duration-short" name="short" type="number" min="1" max="60" step="1" required><span>分钟</span></label><label>悠长休息<input id="duration-long" name="long" type="number" min="1" max="120" step="1" required><span>分钟</span></label></div>
+    <div class="volume-label"><label for="volume">提示音量</label><output id="volume-value" for="volume">60%</output></div><input id="volume" name="volume" type="range" min="0" max="100" step="5" value="60"><button class="preview-sound" id="preview-sound" type="button"><svg><use href="#i-sound"/></svg>试听轻柔提示音</button>
+    <label class="toggle-field"><span>播放完成提示音</span><input id="setting-sound" type="checkbox" checked></label><label class="toggle-field"><span>发送 Windows 完成通知</span><input id="setting-notifications" type="checkbox" checked></label>
+    <p class="settings-note" id="settings-note">新时长会在下一次计时生效。</p><button class="primary-button" type="submit">保存设置</button></form>
+  </dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-heading"><h2 id="confirm-title">重新开始这一刻？</h2><button class="icon-button" data-close="confirm-dialog" aria-label="取消"><svg><use href="#i-close"/></svg></button></div><p class="dialog-copy" id="confirm-copy">当前计时将被重置，已完成的专注记录会保留。</p><div class="dialog-actions"><button class="secondary-button" data-close="confirm-dialog">继续当前计时</button><button class="primary-button" id="confirm-action">重新开始</button></div></dialog>
+  <dialog id="complete-dialog" aria-labelledby="complete-title"><div class="completion-icon"><svg><use href="#i-check"/></svg></div><p class="eyebrow">A LITTLE PROGRESS, EVERY DAY</p><h2 id="complete-title">这一刻，做得很好。</h2><p class="dialog-copy" id="complete-copy">一段专注已完成。伸个懒腰，让眼睛看看远方吧。</p><button class="primary-button" id="complete-next">开始 5 分钟休息</button><button class="text-button" data-close="complete-dialog">先慢慢歇一会儿</button></dialog>
+  <dialog id="edit-plan-dialog" aria-labelledby="edit-plan-title"><form id="edit-plan-form"><div class="dialog-heading"><h2 id="edit-plan-title">调整这件小事</h2><button type="button" class="icon-button" data-close="edit-plan-dialog" aria-label="取消编辑"><svg><use href="#i-close"/></svg></button></div><label class="edit-field">计划名称<input id="edit-title" type="text" maxlength="200" required></label><label class="edit-field">计划日期<input id="edit-date" type="date" required></label><button type="submit" class="primary-button">保存计划</button></form></dialog>
+</body>
+</html>
