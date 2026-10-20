@@ -1,6 +1,6 @@
 {
   "name": "little-moment-desktop",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "山间小憩：离线番茄钟、今日计划与专注日历",
   "author": "Xiaoyu",
   "private": true,
@@ -16,18 +16,21 @@
     "electron-builder": "26.15.3"
   },
   "build": {
-    "appId": "cn.xiaoyu.littlemoment",
+    "appId": "cn.xiaoyu.littlemoment.desktop",
     "productName": "山间小憩",
     "copyright": "山间小憩 · 个人专注工具",
     "asar": true,
     "directories": { "output": "release", "buildResources": "assets" },
     "files": ["src/**/*", "assets/**/*", "package.json"],
+    "extraResources": [{ "from": "assets", "to": "icons", "filter": ["app.ico", "app.png"] }],
     "win": {
+      "executableName": "LittleMoment",
       "icon": "assets/app.ico",
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "artifactName": "LittleMoment-Setup-${version}.${ext}"
     },
     "nsis": {
+      "guid": "54491e54-d0c5-5dcd-bd06-6aa8faa53e7a",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,

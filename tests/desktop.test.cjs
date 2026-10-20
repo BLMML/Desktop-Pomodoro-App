@@ -10,7 +10,7 @@ const { Store } = require('../src/lib/store.cjs');
 const { TimerEngine } = require('../src/lib/engine.cjs');
 const root = path.resolve(__dirname, '..');
 
-async function desktopFixture(t) {
+async function desktopFixture(t, { packaged = false } = {}) {
   const base = path.join(root, '.test-data'); fs.mkdirSync(base, { recursive: true });
   const dataDir = fs.mkdtempSync(path.join(base, 'desktop-'));
   let wall = new Date(2026, 9, 20, 10).getTime(), mono = 0;
@@ -19,20 +19,21 @@ async function desktopFixture(t) {
   let window, tray, closed = false;
   class ClockEngine extends TimerEngine { constructor(store) { super(store, clock); } }
   const app = new EventEmitter();
-  Object.assign(app, { isPackaged: false, setName() {}, setAppUserModelId() {}, setPath() {}, getPath: () => dataDir,
-    getVersion: () => '1.0.0', commandLine: { appendSwitch() {} }, requestSingleInstanceLock: () => true,
+  Object.assign(app, { isPackaged: packaged, setName() {}, setAppUserModelId(id) { this.modelId = id; }, setPath(name, value) { (this.paths ??= {})[name] = value; }, getPath: () => dataDir, getAppPath: () => root,
+    getVersion: () => require('../package.json').version, commandLine: { appendSwitch() {} }, requestSingleInstanceLock: () => true,
     whenReady: () => Promise.resolve(), quit: () => { if (!closed) { app.emit('before-quit'); closed = true; } } });
   class Window extends EventEmitter {
-    constructor() {
-      super(); window = this; this.hidden = false; this.showCount = 0;
+    constructor(options) {
+      super(); window = this; this.hidden = false; this.showCount = 0; this.options = options;
       this.webContents = new EventEmitter();
       Object.assign(this.webContents, { setWindowOpenHandler() {}, isDestroyed: () => false, isCrashed: () => false, send: (name, data) => events.push({ name, data }) });
     }
     removeMenu() {} loadFile() {} isDestroyed() { return false; } isMinimized() { return false; } restore() {}
+    setIcon(icon) { this.icon = icon; } setAppDetails(details) { this.appDetails = details; }
     show() { this.hidden = false; this.showCount++; } hide() { this.hidden = true; } focus() {}
   }
   class TestTray extends EventEmitter {
-    constructor() { super(); tray = this; this.dead = false; }
+    constructor(icon) { super(); tray = this; this.dead = false; this.icon = icon; }
     isDestroyed() { return this.dead; } destroy() { this.dead = true; } setToolTip(s) { this.tip = s; }
     setContextMenu(menu) { this.menu = menu; } displayBalloon() {}
   }
@@ -42,11 +43,12 @@ async function desktopFixture(t) {
     show() { this.shown = true; }
   }
   const electron = { app, BrowserWindow: Window, Menu: { buildFromTemplate: x => x }, Tray: TestTray, Notification: TestNotification,
+    nativeImage: { createFromPath: filename => ({ filename, isEmpty: () => false }) },
     ipcMain: { handle: (name, fn) => ipc.set(name, fn) }, powerMonitor: power,
     dialog: { showErrorBox: (_title, message) => { throw Error(message); } }, shell: { beep() {}, openPath: async () => '' },
     session: { defaultSession: { setPermissionRequestHandler() {}, webRequest: { onBeforeRequest(_filter, callback) { this.block = callback; } } } } };
   const context = vm.createContext({ require: name => name === 'electron' ? electron : name === './lib/store.cjs' ? require('../src/lib/store.cjs') : name === './lib/engine.cjs' ? { TimerEngine: ClockEngine } : require(name),
-    __dirname: path.join(root, 'src'), process: { argv: [] }, console, setInterval: fn => { intervals.push(fn); return 1; }, clearInterval() {}, Date });
+    __dirname: path.join(root, 'src'), process: { argv: [], platform: 'win32', execPath: path.join(dataDir, 'LittleMoment.exe'), resourcesPath: path.join(dataDir, 'resources') }, console, setInterval: fn => { intervals.push(fn); return 1; }, clearInterval() {}, Date });
   vm.runInContext(fs.readFileSync(path.join(root, 'src/main.cjs'), 'utf8'), context);
   await new Promise(resolve => setImmediate(resolve));
   assert.ok(ipc.has('snapshot'), 'main process must initialize successfully');
@@ -72,6 +74,27 @@ test('desktop wiring: close hides to tray and keeps counting; sleep and tray exi
   const store = new Store(path.join(f.dataDir, 'focus.sqlite3'));
   try { const timer = store.get('timer', null); assert.equal(timer.status, 'paused'); assert.equal(timer.pauseReason, 'exit'); assert.equal(timer.elapsedMs, 9000); } finally { store.close(); }
   assert.equal(f.tray.dead, true);
+});
+test('packaged app preserves its identity and does not override the native taskbar icon with a Shell resource path', async t => {
+  const f = await desktopFixture(t, { packaged: true });
+  const iconFolder = path.join(f.dataDir, 'resources', 'icons');
+  assert.equal(f.window.options.icon.filename, path.join(iconFolder, 'app.png'));
+  assert.equal(f.window.icon.filename, path.join(iconFolder, 'app.png'));
+  assert.equal(f.window.appDetails.appId, f.app.modelId);
+  assert.equal(f.window.appDetails.appId, require('../package.json').build.appId);
+  assert.equal(f.window.appDetails.appIconPath, undefined);
+  assert.equal(f.window.appDetails.relaunchCommand, undefined);
+  assert.equal(f.tray.icon, path.join(iconFolder, 'app.ico'));
+  await f.command('test-notification');
+  assert.equal(f.notifications[0].options.icon, path.join(iconFolder, 'app.png'));
+});
+test('new Shell identity retains the original installer GUID and data location for in-place upgrades', async t => {
+  const f = await desktopFixture(t, { packaged: true });
+  const config = require('../package.json').build;
+  assert.equal(config.nsis.guid, '54491e54-d0c5-5dcd-bd06-6aa8faa53e7a');
+  assert.equal(f.app.modelId, 'cn.xiaoyu.littlemoment.desktop');
+  assert.equal(f.app.paths.userData, path.join(f.dataDir, 'LittleMoment'));
+  assert.equal(config.nsis.deleteAppDataOnUninstall, false);
 });
 test('desktop wiring: completion uses Windows notification, clicking it reopens timer, and toggle is respected', async t => {
   const f = await desktopFixture(t);

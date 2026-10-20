@@ -1,12 +1,18 @@
 'use strict';
-const { app, BrowserWindow, Menu, Tray, Notification, ipcMain, powerMonitor, dialog, shell, session } = require('electron');
+const { app, BrowserWindow, Menu, Tray, Notification, ipcMain, powerMonitor, dialog, shell, session, nativeImage } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { Store, dateKey } = require('./lib/store.cjs');
 const { TimerEngine } = require('./lib/engine.cjs');
 
-const APP_ID = 'cn.xiaoyu.littlemoment';
+// New Shell identity bypasses the old identity's incorrect taskbar association.
+// Keep the original NSIS GUID and explicit LittleMoment data directory for upgrades.
+const APP_ID = 'cn.xiaoyu.littlemoment.desktop';
+// Tray and notification assets must be real files outside app.asar.
+const iconDirectory = app.isPackaged ? path.join(process.resourcesPath, 'icons') : path.join(__dirname, '..', 'assets');
+const iconIco = path.join(iconDirectory, 'app.ico');
+const iconPng = path.join(iconDirectory, 'app.png');
 const entry = path.join(__dirname, 'renderer', 'index.html');
 const dataOverride = !app.isPackaged && process.argv.find(v => v.startsWith('--data-dir='));
 app.setName('山间小憩');
@@ -15,7 +21,7 @@ app.setPath('userData', dataOverride ? path.resolve(dataOverride.slice(11)) : pa
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 app.commandLine.appendSwitch('disable-background-networking');
 const dataDir = app.getPath('userData');
-let win, tray, store, engine, interval, quitting = false, shownTrayHint = false, traySignature = '', lastBackupDay = '';
+let win, tray, store, engine, appIcon, interval, quitting = false, shownTrayHint = false, traySignature = '', lastBackupDay = '';
 const activeNotifications = new Set();
 
 function showWindow() {
@@ -42,7 +48,7 @@ function dailyBackup() {
 function notify(title, body, isTest = false) {
   if (!Notification.isSupported()) return false;
   try {
-  const n = new Notification({ title, body, icon: path.join(__dirname, '..', 'assets', 'app.png'), silent: true, timeoutType: 'default' });
+  const n = new Notification({ title, body, icon: iconPng, silent: true, timeoutType: 'default' });
   activeNotifications.add(n);
   n.on('click', () => { showWindow(); sendEvent({ type: 'navigate', page: 'home' }); });
   n.on('close', () => activeNotifications.delete(n));
@@ -93,9 +99,16 @@ function reportError(e) {
 function trusted(event) { return win && event.sender === win.webContents && event.senderFrame?.url === pathToFileURL(entry).href; }
 function createWindow() {
   win = new BrowserWindow({ width: 1240, height: 920, minWidth: 980, minHeight: 730, show: false,
-    title: '山间小憩', icon: path.join(__dirname, '..', 'assets', 'app.ico'), backgroundColor: '#e5eadd', autoHideMenuBar: true,
+    title: '山间小憩', icon: appIcon, backgroundColor: '#e5eadd', autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false, spellcheck: false }
   });
+  win.setIcon(appIcon);
+  if (process.platform === 'win32') {
+    // Let Windows use the window icon and the matching installed shortcut.
+    // An explicit RelaunchIconResource can override a valid window icon with
+    // a cached/default Shell icon. Keep only the stable grouping identity.
+    win.setAppDetails({ appId: APP_ID });
+  }
   win.removeMenu();
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (event, url) => { if (url !== pathToFileURL(entry).href) event.preventDefault(); });
@@ -121,10 +134,12 @@ else {
   app.whenReady().then(() => {
     store = new Store(path.join(dataDir, 'focus.sqlite3'));
     engine = new TimerEngine(store);
+    appIcon = nativeImage.createFromPath(iconPng);
+    if (appIcon.isEmpty()) throw Error('应用图标文件缺失或损坏，请重新安装应用。');
     session.defaultSession.setPermissionRequestHandler((_web, _permission, callback) => callback(false));
     session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (_details, callback) => callback({ cancel: true }));
     createWindow();
-    tray = new Tray(path.join(__dirname, '..', 'assets', 'app.ico'));
+    tray = new Tray(iconIco);
     tray.on('click', showWindow); tray.on('double-click', showWindow);
     updateTray(); dailyBackup();
     powerMonitor.on('suspend', () => { try { engine.pause('sleep'); store.checkpoint(); broadcast(); } catch (e) { reportError(e); } });
